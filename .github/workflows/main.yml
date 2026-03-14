@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/deploy-dev
+      - main
     paths-ignore:
       - ".github/**"
 
@@ -38,13 +39,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Install Databricks CLI
         run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
       - name: Deploy to Dev
         run: databricks bundle deploy -t dev
 
   deploy-prod:
-    needs: deploy-dev
+    needs: test
     name: deploy to prod
     environment: production
     env:
@@ -54,7 +57,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Install Databricks CLI
         run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
       - name: Deploy to Prod
         run: databricks bundle deploy -t prod
