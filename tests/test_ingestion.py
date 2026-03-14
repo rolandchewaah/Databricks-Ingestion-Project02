@@ -27,11 +27,11 @@ def test_silver_transformation_filters_nulls(spark):
         ("user_1", "login"),
         ("user_2", "logout")
     ]
-    # expected_df = spark.createDataFrame(expected_data, schema)
+    expected_df = spark.createDataFrame(expected_data, schema)
 
-    # # 3. Run Logic
-    # # (Assuming you move the filter logic into a function called transform_logic)
-    # output_df = bronze_df.filter(col("user_id").isNotNull())
+    # 3. Run Logic
+    # (Assuming you move the filter logic into a function called transform_logic)
+    output_df = bronze_df.filter(col("user_id").isNotNull())
 
-    # # 4. Assert Equality
-    # assert_df_equality(output_df, expected_df)
+    # 4. Assert Equality
+    assert_df_equality(output_df, expected_df)
