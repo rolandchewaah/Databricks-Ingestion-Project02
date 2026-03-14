@@ -1,11 +1,11 @@
-name: CI/CD Pipeline
+name: deploy
 
 on:
-    push:
-      branches:
-        - feature/deploy-dev
-      paths-ignore:
-        - ".github/**"
+  push:
+    branches:
+      - feature/deploy-dev
+    paths-ignore:
+      - ".github/**"
 
 jobs:
   test:
@@ -26,25 +26,34 @@ jobs:
         run: |
           pytest tests/
 
-  deploy:
-    needs: test  # This ensures deployment only happens if tests pass
+  deploy-dev:
+    needs: test
     name: deploy to dev
     environment: development
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST_DEV }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN_DEV }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/deploy-dev'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Databricks CLI
+        run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+      - name: Deploy to Dev
+        run: databricks bundle deploy -t dev
+
+  deploy-prod:
+    needs: deploy-dev
+    name: deploy to prod
+    environment: production
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST_PROD }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN_PROD }}
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install Databricks CLI
         run: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
-      
- prod:
-    needs: deploy to dev  # This ensures production deployment only happens if dev deployment is successful
-    name: deploy to prod
-    environment: production
-    env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST_DEV }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN_DEV }}
-    run: databricks bundle deploy -t prod
+      - name: Deploy to Prod
+        run: databricks bundle deploy -t prod
