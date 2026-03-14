@@ -1,0 +1,31 @@
+bundle:
+  name: ingestion-platform
+
+variables:
+  catalog:
+    description: "The Unity Catalog to use"
+    default: "main"  # Fallback
+  schema:
+    description: "The Schema (Database) for tables"
+    default: "ingestion_dev"
+
+targets:
+  dev:
+    workspace:
+      host: https://adb-dev.azuredatabricks.net
+    variables:
+      catalog: "dev_catalog"
+      schema: "raw_ingestion"
+
+  prod:
+    workspace:
+      host: https://adb-prod.azuredatabricks.net
+    variables:
+      catalog: "prod_catalog"
+      schema: "raw_ingestion"
+    run_as:
+      service_principal_client_id: ${{secrets.AZURE_CLIENT_ID}}
+
+resources:
+  include:
+    - resources/*.yml
